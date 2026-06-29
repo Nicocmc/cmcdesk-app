@@ -1,0 +1,33 @@
+# CmcDesk - Servidor self-hosted (signaling + relay)
+# Basado en rustdesk-server (AGPL-3.0)
+#
+# hbbs = ID/Rendezvous server -> encuentra peers, coordina hole punching
+# hbbr = Relay server          -> reenvia datos cuando NO hay P2P directo
+#
+# Despliegue:
+#   docker compose up -d
+#   docker compose logs -f hbbs   # ver registros de clientes y la clave publica
+#
+# network_mode host: el relay necesita los puertos del host directo para el
+# hole punching UDP (no funciona con port-mapping bridge).
+
+services:
+  hbbs:
+    container_name: cmcdesk-hbbs
+    image: rustdesk/rustdesk-server:latest
+    command: hbbs
+    volumes:
+      - ./data:/root
+    network_mode: "host"
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+
+  hbbr:
+    container_name: cmcdesk-hbbr
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - ./data:/root
+    network_mode: "host"
+    restart: unless-stopped
